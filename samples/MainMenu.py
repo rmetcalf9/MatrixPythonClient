@@ -1,11 +1,15 @@
 from _Menu import Menu
 from InquirerPy import inquirer
+from Interactive_Json_inspector import InteractiveJsonInspector
+import json
 
 class MainMenu(Menu):
     def _list_of_operations(self):
         return {
             "Admin - Who am I": self.admin_who_am_i,
             "Check username availability": self.is_username_availaivble,
+            "get_capabilities": self.get_capabilities,
+            "server sync": self.get_sync,
         }
 
     def admin_who_am_i(self):
@@ -24,3 +28,18 @@ class MainMenu(Menu):
             print("Available")
         else:
             print("Not Available")
+
+    def get_capabilities(self):
+        response = self.menu_context["client"].sendGetRequest(
+            "/_matrix/client/v3/capabilities",
+            loginSession=self.menu_context["login_session"]
+        )
+        print("Result:", response.text)
+
+    def get_sync(self):
+        response = self.menu_context["client"].sendGetRequest(
+            "/_matrix/client/v3/sync",
+            loginSession=self.menu_context["login_session"]
+        )
+        inspector = InteractiveJsonInspector(json.loads(response.text))
+        inspector.run()
