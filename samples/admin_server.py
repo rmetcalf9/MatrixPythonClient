@@ -3,8 +3,8 @@
 
 import MatrixPythonClient
 import PythonAPIClientBase
+from MainMenu import MainMenu
 
-import requests
 import json
 from pathlib import Path
 
@@ -36,9 +36,12 @@ login_session = client.getLoginSessionFromUsernameAndPassword(username=connectio
 print("Login user id=", login_session.get_user_id())
 
 
-#/_matrix/client/v3/admin/whois/{userId}
 
-response = client.sendGetRequest("/_matrix/client/v3/admin/whois/" + login_session.get_user_id(), loginSession=login_session)
-print(response.text)
+menu_context = {
+    "client": client,
+    "login_session": login_session
+}
+mainMenu = MainMenu(menu_context)
+mainMenu.run()
 
 print("end")
