@@ -44,4 +44,8 @@ menu_context = {
 mainMenu = MainMenu(menu_context)
 mainMenu.run()
 
+# users = client.getAllUsers(login_session=menu_context["login_session"])
+# for user in users:
+#     print("User", user)
+
 print("end")
