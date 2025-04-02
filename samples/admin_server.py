@@ -10,7 +10,7 @@ print("Start")
 
 connections = Connections()
 connection = connections.get_first_connection()
-client = MatrixPythonClient.MatrixClient(baseURL="https://" + connection["chat_server"], mock=None, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass())
+client = MatrixPythonClient.MatrixClient(chat_domain=connection["chat_server"], mock=None, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass())
 
 print("Connecting to", connection["name"])
 login_session = client.getLoginSessionFromUsernameAndPassword(username=connection["username"], password=connection["password"])

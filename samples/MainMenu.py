@@ -6,10 +6,12 @@ import json
 class MainMenu(Menu):
     def _list_of_operations(self):
         return {
+            "get_shared_secret_nonce": self.get_shared_secret_nonce,
             "Admin - Who am I": self.admin_who_am_i,
             "Check username availability": self.is_username_availaivble,
             "get_capabilities": self.get_capabilities,
             "server sync": self.get_sync,
+            "get_display_name": self.get_display_name,
             "update_display_name": self.update_display_name,
         }
 
@@ -25,7 +27,7 @@ class MainMenu(Menu):
 
     def is_username_availaivble(self):
         username = inquirer.text(message="Enter username to test:", default="admin").execute()
-        if self.menu_context["client"].isUsernameAvailiable(login_session=self.menu_context["login_session"], username=username):
+        if self.menu_context["client"].isUsernameAvailiable(username=username):
             print("Available")
         else:
             print("Not Available")
@@ -52,3 +54,12 @@ class MainMenu(Menu):
             display_name=new_display_name
         )
         print("Response:", response)
+
+    def get_display_name(self):
+        print("Response:", self.menu_context["client"].get_own_display_name(
+            login_session=self.menu_context["login_session"]
+        ))
+
+    def get_shared_secret_nonce(self):
+        a = self.menu_context["client"].get_shared_secret_nonce()
+        print("Nonce=", a)

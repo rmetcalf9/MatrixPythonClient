@@ -4,10 +4,28 @@ import json
 login_method = "m.login.password"
 
 class MatrixLoginSession(LoginSession):
+    logged_in_data = None
+    def get_user_id(self):
+        return self.logged_in_data["user_id"]
+
+    def injectHeaders(self, headers):
+        headers["Authorization"] = "Bearer " + self.logged_in_data["access_token"]
+
+    def refresh(self):
+        return False
+
+class MatrixLoginSessionFromAccessToken(MatrixLoginSession):
+    def __init__(self, client, user_id, access_token, device_id):
+        self.logged_in_data = {
+            "user_id": user_id,
+            "access_token": access_token,
+            "device_id": device_id
+        }
+
+class MatrixLoginSessionFromUsernameAndPassword(MatrixLoginSession):
     client = None
     username = None
     password = None
-    logged_in_data = None
 
     def __init__(self, client, username, password):
         self.client = client
@@ -42,12 +60,4 @@ class MatrixLoginSession(LoginSession):
             raise Exception("Failed to log on")
 
         self.logged_in_data = json.loads(login_response.text)
-
-    def get_user_id(self):
-        return self.logged_in_data["user_id"]
-
-    def injectHeaders(self, headers):
-        headers["Authorization"] = "Bearer " + self.logged_in_data["access_token"]
-
-    def refresh(self):
-        return False
+        #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}

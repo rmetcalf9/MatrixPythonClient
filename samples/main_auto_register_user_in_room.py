@@ -1,7 +1,7 @@
 from Connections import Connections
 import MatrixPythonClient
 import PythonAPIClientBase
-
+from KeyValueStore import KeyValueStore
 
 # This script has the process for an externally autnenticated user will have a chat account created
 #  and be added to a particular room
@@ -10,38 +10,49 @@ print("Start auto getister user in room")
 
 connections = Connections()
 connection = connections.get_first_connection()
-client = MatrixPythonClient.MatrixClient(baseURL="https://" + connection["chat_server"], mock=None, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass())
+client = MatrixPythonClient.MatrixClient(chat_domain=connection["chat_server"], mock=None, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass())
+admin_login_session = client.getLoginSessionFromUsernameAndPassword(connection["username"], connection["password"])
+
+password_store = KeyValueStore("../secrets/auto_reg_password.json")
+room_store = KeyValueStore("../secrets/auto_reg_room.json")
 
 def password_fetch_function(username):
     print("Password fetch called", username)
-    return "abc123"
+    return password_store.get(username)
 
 def password_store_function(username, password):
     print("Password store called", username, password)
-    return None
+    return password_store.set(username, password)
 
+def room_fetch_function(roomname):
+    print("Room fetch called", roomname)
+    return room_store.get(roomname)
+
+def password_store_function(roomname, roomid):
+    print("Room store called", roomname, roomid)
+    return room_store.set(roomname, roomid)
+
+username = "created_username5"
+user_displayname = "created_username_display"
+
+room_name = "Test room4"
+clubchat_room_id = "someclubchat_id6"
 room_topic = "talk about test stuff"
-room_name = "Test room"
-room_alias_name = room_name
+room_alias_name = None
 
-#POST /_matrix/client/v3/createRoom
-create_room_body = {
-    "creation_content": {},
-    "initial_state": [],
-    "invite": [], #TODO Add requesting user
-    "invite_3pid": [],
-    "is_direct": True,
-    "name": room_name,
-    PRESET???,
-    "room_alias_name": room_alias_name
-    "room_version": TODO
-    "topic": room_topic
-    "visibility": "private"
-}
 response = client.auto_register_user_in_room(
-    username="username",
-    password_fetch_function=password_fetch_function,
-    password_store_function=password_store_function
+    admin_login_session=admin_login_session,
+    registration_shared_secret=connection["registration_shared_secret"],
+    username=username,
+    displayname=user_displayname,
+    user_password_fetch_function=password_fetch_function,
+    user_password_store_function=password_store_function,
+    clubchat_room_id=clubchat_room_id,  # unique identifier of clubchat room
+    room_topic=room_topic,
+    room_name=room_name,
+    room_alias_name=room_alias_name,
+    room_fetch_function=room_fetch_function,  # fetch room id's
+    room_store_function=password_store_function,  # Store room id's
 )
 
 print("End auto getister user in room")
