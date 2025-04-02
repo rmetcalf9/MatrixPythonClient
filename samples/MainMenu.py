@@ -10,6 +10,7 @@ class MainMenu(Menu):
             "Check username availability": self.is_username_availaivble,
             "get_capabilities": self.get_capabilities,
             "server sync": self.get_sync,
+            "update_display_name": self.update_display_name,
         }
 
     def admin_who_am_i(self):
@@ -43,3 +44,11 @@ class MainMenu(Menu):
         )
         inspector = InteractiveJsonInspector(json.loads(response.text))
         inspector.run()
+
+    def update_display_name(self):
+        new_display_name = inquirer.text(message="Enter new display name:", default="Admin Display").execute()
+        response = self.menu_context["client"].update_own_display_name(
+            login_session=self.menu_context["login_session"],
+            display_name=new_display_name
+        )
+        print("Response:", response)

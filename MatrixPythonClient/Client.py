@@ -30,3 +30,19 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         if response.status_code==200:
             return True
         return False
+
+    def update_own_display_name(self, login_session, display_name):
+        return self.update_display_name(login_session=login_session, userid=login_session.get_user_id(), display_name=display_name)
+
+    def update_display_name(self, login_session, userid, display_name):
+        put_body = {
+            "displayname": display_name
+        }
+        response = self.sendPutRequest(
+            url="/_matrix/client/v3/profile/" + userid + "/displayname",
+            loginSession=login_session,
+            data=json.dumps(put_body)
+        )
+        if response.status_code==200:
+            return True
+        raise Exception("FAiled to change display name")

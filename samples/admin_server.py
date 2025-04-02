@@ -4,30 +4,12 @@
 import MatrixPythonClient
 import PythonAPIClientBase
 from MainMenu import MainMenu
-
-import json
-from pathlib import Path
+from Connections import Connections
 
 print("Start")
 
-connections_file = "../secrets/connections.json"
-
-
-my_file = Path(connections_file)
-if not my_file.is_file():
-    raise Exception("Connections file doesn't exist")
-
-connections = None
-with open(connections_file) as f:
-    connections = json.load(f)
-if connections is None:
-    raise Exception("Could not load connections")
-
-if len(connections) != 1:
-    raise Exception("Not implemented multiple connection selection")
-
-connection = connections[0]
-
+connections = Connections()
+connection = connections.get_first_connection()
 client = MatrixPythonClient.MatrixClient(baseURL="https://" + connection["chat_server"], mock=None, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass())
 
 print("Connecting to", connection["name"])
