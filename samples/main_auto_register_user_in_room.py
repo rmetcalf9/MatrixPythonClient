@@ -28,15 +28,16 @@ def room_fetch_function(roomname):
     print("Room fetch called", roomname)
     return room_store.get(roomname)
 
-def password_store_function(roomname, roomid):
+def room_store_function(roomname, roomid):
     print("Room store called", roomname, roomid)
     return room_store.set(roomname, roomid)
 
-username = "created_username5"
+test_num = "12"
+username = "created_username" + test_num
 user_displayname = "created_username_display"
 
-room_name = "Test room4"
-clubchat_room_id = "someclubchat_id6"
+room_name = "Test room" + test_num
+clubchat_room_id = "someclubchat_idx" + test_num
 room_topic = "talk about test stuff"
 room_alias_name = None
 
@@ -52,7 +53,9 @@ response = client.auto_register_user_in_room(
     room_name=room_name,
     room_alias_name=room_alias_name,
     room_fetch_function=room_fetch_function,  # fetch room id's
-    room_store_function=password_store_function,  # Store room id's
+    room_store_function=room_store_function,  # Store room id's
 )
+
+print("Result=", response)
 
 print("End auto getister user in room")

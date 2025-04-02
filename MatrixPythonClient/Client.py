@@ -7,6 +7,8 @@ import hmac
 import hashlib
 import PythonAPIClientBase
 
+usernameInvalidChars=" :@!"
+
 class MatrixClient(PythonAPIClientBase.APIClientBase):
     chat_domain = None
     def __init__(self, chat_domain, mock=None, forceOneRequestAtATime=False, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass()):
@@ -20,6 +22,8 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         return MatrixLoginSessionFromAccessToken(client=self, user_id=user_id, access_token=access_token, device_id=device_id)
 
     def get_userid_from_username(self, username):
+        if not self.isValidUsername(username):
+            raise Exception("Invalid user name")
         return "@" + username + ":" + self.chat_domain
 
     def get_shared_secret_nonce(self):
@@ -32,6 +36,8 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         return json.loads(response.text)["nonce"]
 
     def registerNewUser(self, username, password, displayname, registration_shared_secret=None):
+        if not self.isValidUsername(username):
+            raise Exception("Invalid user name")
 
         nonce = self.get_shared_secret_nonce()
         mac_data = f"{nonce}\0{username}\0{password}\0notadmin"
@@ -94,17 +100,38 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         # POST
         create_room_body = {
             "creation_content": {},
-            "initial_state": [],
+            "initial_state": [
+                {
+                    "type": "m.room.join_rules",
+                    "state_key": "",
+                    "content": {
+                        "join_rule": "invite"
+                    }
+                },
+                {
+                    "type": "m.room.history_visibility",
+                    "state_key": "",
+                    "content": {
+                        "history_visibility": "shared"
+                    }
+                },
+                {
+                    "type": "m.room.guest_access",
+                    "state_key": "",
+                    "content": {
+                        "guest_access": "forbidden"
+                    }
+                }
+            ],
             "invite": invite_list,
             "invite_3pid": [],
             "is_direct": False,
             "name": room_name,
             "room_alias_name": room_alias_name,
-            "room_version": "10",
+            "room_version": "11",
             "topic": room_topic,
             "visibility": "private"
         }
-        print("Create", create_room_body)
         response = self.sendPostRequest(
             "/_matrix/client/v3/createRoom",
             loginSession=login_session,
@@ -116,6 +143,30 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             print("text", response.text)
             raise Exception("Error failed to create room")
         return json.loads(response.text)["room_id"]
+
+    def invite_user_to_room(
+        self,
+        login_session,
+        room_id,
+        user_id,
+        reason
+    ):
+        # POST
+        invite_body = {
+            "reason": reason,
+            "user_id": user_id
+        }
+        response = self.sendPostRequest(
+            "/_matrix/client/v3/rooms/" + room_id + "/invite",
+            loginSession=login_session,
+            data=json.dumps(invite_body)
+        )
+        if response.status_code != 200:
+            print("ERROR")
+            print("status", response.status_code)
+            print("text", response.text)
+            raise Exception("Error failed to invite user to room")
+        return
 
     def isUsernameAvailiable(self, username):
         response = self.sendGetRequest(
@@ -136,6 +187,11 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         )
         if response.status_code==200:
             return json.loads(response.text)["displayname"]
+        if response.status_code==404:
+            return "" # no profile set or user doesn't exist
+        print("Error getting display name")
+        print("code:", response.status_code)
+        print("text", response.text)
         raise Exception("Error getting display name")
 
     def update_own_display_name(self, login_session, display_name):
@@ -176,6 +232,8 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         room_fetch_function, #fetch room id's (key is clubchat_room_id)
         room_store_function, #Store room id's
     ):
+        if not self.isValidUsername(username):
+            raise Exception("Invalid user name")
         # Doesn't use login_session. it will create a user than log in as that user
         login_session = None
         password = user_password_fetch_function(username=username)
@@ -203,9 +261,12 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
         room_id = room_fetch_function(clubchat_room_id)
         if room_id is not None:
-            # TODO Join this user to the room
-            # if required set room_topic, room_name, room_alias_name
-            raise Exception("NI - room exits")
+            self.invite_user_to_room(
+                login_session=admin_login_session,
+                room_id=room_id,
+                user_id=login_session.get_user_id(),
+                reason="Join the chat"
+            )
         else:
             room_id = self.create_room(
                 login_session=admin_login_session,
@@ -221,3 +282,11 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             "login_session": login_session, # Needed as auth token is extracted
             "room_id": room_id
         }
+
+    def isValidUsername(self, username):
+        for char in usernameInvalidChars:
+            if char in username:
+                return False
+        if username != username.lower():
+            return False
+        return True
