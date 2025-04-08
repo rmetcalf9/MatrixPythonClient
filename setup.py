@@ -19,7 +19,7 @@ all_require = sp_install_requires + sp_tests_require
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setup(name='MatrixPythonClient',
+setup(name='matrixpythonclient',
       version=versioneer.get_version(),
       cmdclass=versioneer.get_cmdclass(),
       description='Python package which provides Matrix Rest API Client',
