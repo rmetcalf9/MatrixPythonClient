@@ -61,3 +61,9 @@ class MatrixLoginSessionFromUsernameAndPassword(MatrixLoginSession):
 
         self.logged_in_data = json.loads(login_response.text)
         #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}
+
+    def get_login_session(self):
+        #of the form
+        #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}
+        # not sure if I should force the fields
+        return self.logged_in_data
