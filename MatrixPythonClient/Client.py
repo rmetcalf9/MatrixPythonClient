@@ -217,21 +217,16 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         print("response.text", response.text)
         raise Exception("FAiled to change display name")
 
-    def auto_register_user_in_room(
+    def auto_register_user(
         self,
-        admin_login_session, # Used for room creation
+        admin_login_session,  # Used for room creation
         registration_shared_secret,
         username,
         displayname,
         user_password_fetch_function,
         user_password_store_function,
-        clubchat_room_id,  #unique identifier of clubchat room
-        room_topic,
-        room_name,
-        room_alias_name,
-        room_fetch_function, #fetch room id's (key is clubchat_room_id)
-        room_store_function, #Store room id's
     ):
+        #auto register a user and return a current login session
         if not self.isValidUsername(username):
             raise Exception("Invalid user name")
         # Doesn't use login_session. it will create a user than log in as that user
@@ -258,6 +253,32 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
         # Creation doesn't seem to update display name so do it here
         self.update_display_name(login_session=login_session, userid=self.get_userid_from_username(username), display_name=displayname)
+
+        return login_session
+
+    def auto_register_user_in_room(
+        self,
+        admin_login_session, # Used for room creation
+        registration_shared_secret,
+        username,
+        displayname,
+        user_password_fetch_function,
+        user_password_store_function,
+        clubchat_room_id,  #unique identifier of clubchat room
+        room_topic,
+        room_name,
+        room_alias_name,
+        room_fetch_function, #fetch room id's (key is clubchat_room_id)
+        room_store_function, #Store room id's
+    ):
+        login_session = self.auto_register_user(
+            admin_login_session=admin_login_session,  # Used for room creation
+            registration_shared_secret=registration_shared_secret,
+            username=username,
+            displayname=displayname,
+            user_password_fetch_function=user_password_fetch_function,
+            user_password_store_function=user_password_store_function,
+        )
 
         room_id = room_fetch_function(clubchat_room_id)
         if room_id is not None:
