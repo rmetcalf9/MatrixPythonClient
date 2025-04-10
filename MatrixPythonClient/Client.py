@@ -12,7 +12,10 @@ usernameInvalidChars=" :@!"
 class MatrixClient(PythonAPIClientBase.APIClientBase):
     chat_domain = None
     def __init__(self, chat_domain, mock=None, forceOneRequestAtATime=False, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass()):
-        super().__init__(baseURL="https://" + chat_domain, mock=mock, forceOneRequestAtATime=forceOneRequestAtATime, verboseLogging=verboseLogging)
+        useBaseUrl = chat_domain
+        if useBaseUrl != "MOCK":
+            useBaseUrl = "https://" + useBaseUrl
+        super().__init__(baseURL=useBaseUrl, mock=mock, forceOneRequestAtATime=forceOneRequestAtATime, verboseLogging=verboseLogging)
         self.chat_domain=chat_domain
 
     def getLoginSessionFromUsernameAndPassword(self, username, password):
