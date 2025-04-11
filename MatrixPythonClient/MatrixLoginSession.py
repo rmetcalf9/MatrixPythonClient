@@ -14,6 +14,14 @@ class MatrixLoginSession(LoginSession):
     def refresh(self):
         return False
 
+    def get_login_session(self):
+        #of the form
+        #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}
+        # not sure if I should force the fields
+        #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}
+        return self.logged_in_data
+
+
 class MatrixLoginSessionFromAccessToken(MatrixLoginSession):
     def __init__(self, client, user_id, access_token, device_id):
         self.logged_in_data = {
@@ -62,8 +70,3 @@ class MatrixLoginSessionFromUsernameAndPassword(MatrixLoginSession):
         self.logged_in_data = json.loads(login_response.text)
         #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}
 
-    def get_login_session(self):
-        #of the form
-        #self.logged_in_data={'user_id': '@admin:chat.metcarob.com', 'access_token': 'xxxx', 'device_id': 'yyyy'}
-        # not sure if I should force the fields
-        return self.logged_in_data
