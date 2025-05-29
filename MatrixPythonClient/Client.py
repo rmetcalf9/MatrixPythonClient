@@ -259,6 +259,37 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
         return login_session
 
+    def auto_invite_user_create_room_if_required(
+        self,
+        admin_login_session,
+        clubchat_room_id,
+        user_id,
+        room_topic,
+        room_name,
+        room_alias_name,
+        room_fetch_function,  # fetch room id's (key is clubchat_room_id)
+        room_store_function,  # Store room id's
+        invite_reason
+    ):
+        room_id = room_fetch_function(clubchat_room_id)
+        if room_id is not None:
+            self.invite_user_to_room(
+                login_session=admin_login_session,
+                room_id=room_id,
+                user_id=user_id,
+                reason=invite_reason
+            )
+        else:
+            room_id = self.create_room(
+                login_session=admin_login_session,
+                room_topic=room_topic,
+                room_name=room_name,
+                room_alias_name=room_alias_name,
+                invite_list=[user_id] # no need to include admin as that is creator
+            )
+            room_store_function(clubchat_room_id, room_id)
+        return room_id
+
     def auto_register_user_in_room(
         self,
         admin_login_session, # Used for room creation
@@ -273,6 +304,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         room_alias_name,
         room_fetch_function, #fetch room id's (key is clubchat_room_id)
         room_store_function, #Store room id's
+        invite_reason="Join the chat"
     ):
         login_session = self.auto_register_user(
             admin_login_session=admin_login_session,  # Used for room creation
@@ -283,24 +315,17 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             user_password_store_function=user_password_store_function,
         )
 
-        room_id = room_fetch_function(clubchat_room_id)
-        if room_id is not None:
-            self.invite_user_to_room(
-                login_session=admin_login_session,
-                room_id=room_id,
-                user_id=login_session.get_user_id(),
-                reason="Join the chat"
-            )
-        else:
-            room_id = self.create_room(
-                login_session=admin_login_session,
-                room_topic=room_topic,
-                room_name=room_name,
-                room_alias_name=room_alias_name,
-                invite_list=[login_session.get_user_id()] # no need to include admin as that is creator
-            )
-            room_store_function(clubchat_room_id, room_id)
-
+        room_id = self.auto_invite_user_create_room_if_required(
+            admin_login_session,
+            clubchat_room_id,
+            user_id=login_session.get_user_id(),
+            room_topic=room_topic,
+            room_name=room_name,
+            room_alias_name=room_alias_name,
+            room_fetch_function=room_fetch_function,
+            room_store_function=room_store_function,
+            invite_reason=invite_reason
+        )
 
         return {
             "login_session": login_session, # Needed as auth token is extracted
