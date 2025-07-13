@@ -26,7 +26,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
     def get_userid_from_username(self, username):
         if not self.isValidUsername(username):
-            raise Exception("Invalid user name")
+            raise Exception("Invalid user name - ", username)
         return "@" + username + ":" + self.chat_domain
 
     def get_shared_secret_nonce(self):
@@ -40,7 +40,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
     def registerNewUser(self, username, password, displayname, registration_shared_secret=None):
         if not self.isValidUsername(username):
-            raise Exception("Invalid user name")
+            raise Exception("Invalid user name - ", username)
 
         nonce = self.get_shared_secret_nonce()
         mac_data = f"{nonce}\0{username}\0{password}\0notadmin"
@@ -231,7 +231,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
     ):
         #auto register a user and return a current login session
         if not self.isValidUsername(username):
-            raise Exception("Invalid user name")
+            raise Exception("Invalid user name - ", username)
         # Doesn't use login_session. it will create a user than log in as that user
         login_session = None
         password = user_password_fetch_function(username=username)

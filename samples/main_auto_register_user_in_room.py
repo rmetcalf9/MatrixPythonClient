@@ -56,6 +56,8 @@ response = client.auto_register_user_in_room(
     room_store_function=room_store_function,  # Store room id's
 )
 
+print("username", username)
+print("login session user_id", response["login_session"].get_user_id())
 print("Result=", response)
 
 print("End auto getister user in room")
