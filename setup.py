@@ -4,14 +4,14 @@ import versioneer
 #Dependancy lists maintained here and in tox.ini
 sp_install_requires = [
   'requests==2.31.0',
-  'pytz==2019.3',
+  'pytz==2025.2',
   'python-dateutil==2.8.1',
-  'PythonAPIClientBase==0.0.15',
+  'PythonAPIClientBase==0.0.16',
   'InquirerPy==0.3.4'
 ]
 sp_tests_require = [
   'pytest==7.1.2',
-  'python_Testing_Utilities==0.1.10'
+  'python_Testing_Utilities==0.1.11'
 ]
 
 all_require = sp_install_requires + sp_tests_require
