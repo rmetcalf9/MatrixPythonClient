@@ -11,7 +11,9 @@ usernameInvalidChars=" :@!"
 
 class MatrixClient(PythonAPIClientBase.APIClientBase):
     chat_domain = None
-    def __init__(self, chat_domain, mock=None, forceOneRequestAtATime=False, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass()):
+    debug = None
+    def __init__(self, chat_domain, mock=None, forceOneRequestAtATime=False, verboseLogging=PythonAPIClientBase.VerboseLoggingNullLogClass(), debug=False):
+        self.debug = debug
         useBaseUrl = chat_domain
         if useBaseUrl != "MOCK":
             useBaseUrl = "https://" + useBaseUrl
@@ -207,18 +209,23 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         put_body = {
             "displayname": display_name
         }
+        url_to_call = "/_matrix/client/v3/profile/" + userid + "/displayname"
         response = self.sendPutRequest(
-            url="/_matrix/client/v3/profile/" + userid + "/displayname",
+            url=url_to_call,
             loginSession=login_session,
             data=json.dumps(put_body)
         )
         if response.status_code==200:
             return True
-        print("XX", userid)
-        print("YY", login_session.get_user_id())
-        print("response.status_code", response.status_code)
-        print("response.text", response.text)
-        raise Exception("FAiled to change display name")
+
+        if self.debug:
+            print("Debug mode on - not 200 code response with call to")
+            print("url_to_call", url_to_call)
+            print("response.status_code", str(response.status_code))
+            print("response.text", response.text)
+            print("userid", userid)
+            print("login_session.get_user_id()", login_session.get_user_id())
+        raise Exception("Failed to change display name")
 
     def auto_register_user(
         self,
