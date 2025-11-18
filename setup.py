@@ -5,7 +5,7 @@ import versioneer
 sp_install_requires = [
   'requests==2.31.0',
   'pytz==2025.2',
-  'python-dateutil==2.8.1',
+  'python-dateutil==2.9.0.post0',
   'PythonAPIClientBase==0.0.16',
   'InquirerPy==0.3.4'
 ]
