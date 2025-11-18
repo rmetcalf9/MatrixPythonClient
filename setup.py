@@ -6,7 +6,7 @@ sp_install_requires = [
   'requests==2.31.0',
   'pytz==2025.2',
   'python-dateutil==2.9.0.post0',
-  'PythonAPIClientBase==0.0.16',
+  'PythonAPIClientBase==0.0.17',
   'InquirerPy==0.3.4'
 ]
 sp_tests_require = [
