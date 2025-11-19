@@ -6,6 +6,7 @@ import uuid
 import hmac
 import hashlib
 import PythonAPIClientBase
+from .Exceptions import UserAlreadyJoinedRoomException
 
 usernameInvalidChars=" :@!"
 
@@ -167,6 +168,14 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             data=json.dumps(invite_body)
         )
         if response.status_code != 200:
+            if response.status_code == 403:
+                try:
+                    responseJson = json.dumps(response.text)
+                    if responseJson["errcode"] == "M_FORBIDDEN":
+                        if responseJson["error"] == "user is already joined to room":
+                            raise UserAlreadyJoinedRoomException("user is already joined to room")
+                except:
+                    pass
             print("ERROR")
             print("status", response.status_code)
             print("text", response.text)
@@ -280,12 +289,16 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
     ):
         room_id = room_fetch_function(clubchat_room_id)
         if room_id is not None:
-            self.invite_user_to_room(
-                login_session=admin_login_session,
-                room_id=room_id,
-                user_id=user_id,
-                reason=invite_reason
-            )
+            try:
+                self.invite_user_to_room(
+                    login_session=admin_login_session,
+                    room_id=room_id,
+                    user_id=user_id,
+                    reason=invite_reason
+                )
+            except UserAlreadyJoinedRoomException:
+                # User is already in this room - we can continue
+                pass
         else:
             room_id = self.create_room(
                 login_session=admin_login_session,
