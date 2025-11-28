@@ -508,16 +508,14 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             login_session=login_session,
             data_type="m.direct"
         )
-        if content is None:
-            return None
-        if user_id not in content:
-            return None
-        roomIds = content[user_id]
-        for roomId in roomIds:
-            # Will return the first room where the other user is invited or in the room (not leave)
-            joinedMembersFromDM = self.getRoomMembers(login_session, roomId)
-            if joinedMembersFromDM.isUserActiveOrInvited(user_id):
-                return roomId
+        if content is not None:
+            if user_id in content:
+                roomIds = content[user_id]
+                for roomId in roomIds:
+                    # Will return the first room where the other user is invited or in the room (not leave)
+                    joinedMembersFromDM = self.getRoomMembers(login_session, roomId)
+                    if joinedMembersFromDM.isUserActiveOrInvited(user_id):
+                        return roomId
 
         # # Check joinedRooms in case invite not processed
         # This check is not necessary as joined rooms are always in m.direct
