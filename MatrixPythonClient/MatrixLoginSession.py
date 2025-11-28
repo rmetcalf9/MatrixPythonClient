@@ -17,6 +17,7 @@ class MatrixLoginSession(LoginSession):
     def getSync(self):
         if self.sync is None:
             self.sync = ClientSync(client=self.client)
+        return self.sync
 
     def get_whoami_cached_result(self):
         return self.who_am_i_cached_result
