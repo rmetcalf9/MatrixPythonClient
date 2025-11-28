@@ -463,12 +463,14 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         for roomId in roomIds:
             # Will return the first room where the other user is invited or in the room (not leave)
             joinedMembers = self.getRoomJoinedMembers(login_session, roomId)
-            print("TMP DEBUG TODO REM", joinedMembers.result)
-            membership = joinedMembers.getMembershipForUser(user_id)["content"]["membership"]
-            if membership == "join":
-                return roomId
-            if membership == "invite":
-                return roomId
+            print("TMP DEBUG TODO REM", joinedMembers.result, user_id)
+            membershipForUser = joinedMembers.getMembershipForUser(user_id)
+            if membershipForUser is not None:
+                membership = membershipForUser["content"]["membership"]
+                if membership == "join":
+                    return roomId
+                if membership == "invite":
+                    return roomId
         return None
 
     def updateDirectMapping(self, login_session, userId, roomId):
