@@ -485,7 +485,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
         return RoomJoinedMembersResult(resultJson)
 
-    def findExistingDmRoom(self, login_session, user_id):
+    def findExistingDmRoom(self, login_session, user_id, my_user_id):
         content = self.getAccountData(
             login_session=login_session,
             data_type="m.direct"
@@ -497,20 +497,24 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         roomIds = content[user_id]
         for roomId in roomIds:
             # Will return the first room where the other user is invited or in the room (not leave)
-            joinedMembers = self.getRoomMembers(login_session, roomId)
-            membershipForUser = joinedMembers.getMembershipForUser(user_id)
-            if membershipForUser is not None:
-                membership = membershipForUser["content"]["membership"]
-                if membership == "join":
-                    return roomId
-                if membership == "invite":
-                    return roomId
+            joinedMembersFromDM = self.getRoomMembers(login_session, roomId)
+            if joinedMembersFromDM.isUserActiveOrInvited(user_id):
+                return roomId
 
         # # Check joinedRooms in case invite not processed
-        # joinedRooms = self.getJoinedRooms(login_session)
-        # for roomId in joinedRooms:
-
-
+        joinedRooms = self.getJoinedRooms(login_session)
+        for roomId in joinedRooms:
+            room_topic = self.getRoomState(
+                login_session=login_session,
+                roomId=roomId,
+                state="m.room.topic"
+            )
+            if room_topic == "Direct Chat":
+                joinedMembers = self.getRoomMembers(login_session, roomId)
+                if joinedMembers.numMembers() == 2:
+                    if joinedMembers.isUserActiveOrInvited(user_id):
+                        if joinedMembers.isUserActiveOrInvited(my_user_id):
+                            return roomId
 
         return None
 
@@ -534,11 +538,11 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
     def start_direct_message(self, login_session, user_id):
         self.ensureValidUserId(user_id)
-        existingRoomId = self.findExistingDmRoom(login_session=login_session, user_id=user_id)
+        my_user_id = self.whoami(login_session)["user_id"]
+        existingRoomId = self.findExistingDmRoom(login_session=login_session, user_id=user_id, my_user_id=my_user_id)
         if existingRoomId is not None:
             return existingRoomId
 
-        my_user_id = self.whoami(login_session)["user_id"]
 
         roomId = self.create_room(
             login_session=login_session,
