@@ -536,9 +536,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         invites = login_session.getSync().get_current_direct_room_ids_invited_to(login_session=login_session)
         # in the form roomId: otherUser
         #get current invites {'!wZCxd8oPmdQZ5dbx:socialchatdev.metcarob.com': '@socialdsocialsaas-socialautoconfigtestuser001:socialchatdev.metcarob.com'}
-        print("TODO DEBUG SEARCHING INVITES", invites)
         for roomId in invites.keys():
-            print("TODO roomId", roomId)
             # found an invite - that means we should use this room
             if invites[roomId] == user_id:
                 self.joinRoom(login_session=login_session, roomId=roomId)
