@@ -5,6 +5,14 @@ login_method = "m.login.password"
 
 class MatrixLoginSession(LoginSession):
     logged_in_data = None
+    who_am_i_cached_result = None
+
+    def get_whoami_cached_result(self):
+        return self.who_am_i_cached_result
+
+    def set_whoami_cached_result(self, result):
+        self.who_am_i_cached_result = result
+
     def get_user_id(self):
         return self.logged_in_data["user_id"]
 

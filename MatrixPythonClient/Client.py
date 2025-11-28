@@ -361,3 +361,105 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         if username != username.lower():
             return False
         return True
+
+    def ensureValidUserId(self, user_id):
+        if len(user_id) < 2:
+            raise Exception("Invalid user_id - ", user_id)
+        if user_id[0] != "@":
+            raise Exception("Invalid user_id - ", user_id)
+
+    def whoami(self, login_session, force=False):
+        if not force:
+            cached_result = login_session.get_whoami_cached_result()
+            if cached_result is not None:
+                return cached_result
+
+        result = self.sendGetRequest(
+            origin=None,
+            url= "/_matrix/client/v3/account/whoami",
+            params={
+                "limit": 10,
+                "offset": 0
+            },
+            loginSession=login_session,
+            injectHeadersFn=None
+        )
+
+        if result.status_code != 200:
+            print("Error getting whomai info")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error listing users")
+
+        resultJson = json.loads(result.text)
+        login_session.set_whoami_cached_result(resultJson)
+        return resultJson
+
+    def getAccountData(self, login_session, data_type):
+        user_id = self.whoami(login_session)["user_id"]
+        result = self.sendGetRequest(
+            url="/_matrix/client/v3/user/" + user_id + "/account_data/" + data_type,
+            loginSession=login_session
+        )
+        if result.status_code != 200:
+            print("Error getting account data")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error getting account data")
+
+        return json.loads(result.text)
+
+    def setAccountData(self, login_session, data_type, data):
+        user_id = self.whoami(login_session)["user_id"]
+        result = self.sendPutRequest(
+            url="/_matrix/client/v3/user/" + user_id + "/account_data/" + data_type,
+            loginSession=login_session,
+            data=json.dumps(data)
+        )
+        if result.status_code != 200:
+            print("Error seting accoutn data")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error setting account data")
+
+        resultJson = json.loads(result.text)
+        return resultJson
+
+    # def findExistingDmRoom(self, user_id):
+    #     pass
+    # findExistingDMRoom (userId) {
+    #   const content = this.get_accountDataMDirect()
+    #
+    #   const roomIds = content[userId]
+    #   if (!roomIds) return null
+    #
+    #   // Validate the rooms (sometimes rooms get stale)
+    #   for (const roomId of roomIds) {
+    #     const room = this.matrix.getRoom(roomId)
+    #     if (!room) continue
+    #
+    #     const membership = room.getMyMembership()
+    #     if (membership === 'join' || membership === 'invite') {
+    #       return roomId
+    #     }
+    #   }
+    # },
+    #
+    # def start_direct_message(self, user_id):
+    #     self.ensureValidUserId(user_id)
+    #     existingRoomId = self.findExistingDmRoom(user_id)
+    #     if existingRoomId is not None:
+    #         return existingRoomId
+
+      # const response = await this.matrix.createRoom({
+      #   invite: [userId],
+      #   is_direct: true,
+      #   preset: 'trusted_private_chat',
+      #   // No encryption state!
+      #   room_name: userId + ' - ' + this.matrix.getUserId(),
+      #   room_topic: 'Direct Chat'
+      #
+      # })
+      # const roomId = response.room_id
+      # this.updateDirectMapping(userId, roomId)
+      # return roomId
