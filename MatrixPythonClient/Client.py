@@ -503,14 +503,17 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
 
         # # Check joinedRooms in case invite not processed
         joinedRooms = self.getJoinedRooms(login_session)
+        print("TODO Debugging joinedrooms", joinedRooms)
         for roomId in joinedRooms:
             room_topic = self.getRoomState(
                 login_session=login_session,
                 roomId=roomId,
                 state="m.room.topic"
             )
+            print("TODO Debugging room", roomId, room_topic)
             if room_topic == "Direct Chat":
                 joinedMembers = self.getRoomMembers(login_session, roomId)
+                print("TODO Debugging joinedmembers", joinedMembers.result)
                 if joinedMembers.numMembers() == 2:
                     if joinedMembers.isUserActiveOrInvited(user_id):
                         if joinedMembers.isUserActiveOrInvited(my_user_id):
