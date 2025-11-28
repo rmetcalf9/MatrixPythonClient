@@ -7,6 +7,7 @@ import hmac
 import hashlib
 import PythonAPIClientBase
 from .Exceptions import UserAlreadyJoinedRoomException
+from .RoomJoinedMembersResult import RoomJoinedMembersResult
 
 usernameInvalidChars=" :@!"
 
@@ -402,6 +403,8 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             loginSession=login_session
         )
         if result.status_code != 200:
+            if result.status_code == 404:
+                return None
             print("Error getting account data")
             print("status", result.status_code)
             print("response", result.text)
@@ -416,18 +419,36 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             loginSession=login_session,
             data=json.dumps(data)
         )
+
+    def getRoomJoinedMembers(self, login_session, roomId):
+        result = self.sendGetRequest(
+            url="/_matrix/client/v3/rooms/" + roomId + "/members",
+            loginSession=login_session
+        )
         if result.status_code != 200:
-            print("Error seting accoutn data")
+            if result.status_code == 404:
+                return None
+            print("Error getting room member list")
             print("status", result.status_code)
             print("response", result.text)
-            raise Exception("Error setting account data")
+            raise Exception("Error getting room member list")
 
         resultJson = json.loads(result.text)
-        return resultJson
+        return RoomJoinedMembersResult(resultJson)
 
-    # def findExistingDmRoom(self, user_id):
-    #     pass
-    # findExistingDMRoom (userId) {
+    def findExistingDmRoom(self, login_session, user_id):
+        content = self.getAccountData(
+            login_session=login_session,
+            data_type="m.direct"
+        )
+        if content is None:
+            return None
+        if user_id not in content:
+            return None
+        roomIds = content["userId"]
+        for roomId in roomIds:
+            pass
+
     #   const content = this.get_accountDataMDirect()
     #
     #   const roomIds = content[userId]
@@ -444,12 +465,12 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
     #     }
     #   }
     # },
-    #
-    # def start_direct_message(self, user_id):
-    #     self.ensureValidUserId(user_id)
-    #     existingRoomId = self.findExistingDmRoom(user_id)
-    #     if existingRoomId is not None:
-    #         return existingRoomId
+
+    def start_direct_message(self, user_id):
+        self.ensureValidUserId(user_id)
+        existingRoomId = self.findExistingDmRoom(user_id)
+        if existingRoomId is not None:
+            return existingRoomId
 
       # const response = await this.matrix.createRoom({
       #   invite: [userId],
