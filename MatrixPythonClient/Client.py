@@ -520,7 +520,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
                 return roomId
 
         # # Check joinedRooms in case invite not processed
-        # This check is not nessecary as joined rooms are always in m.direct
+        # This check is not necessary as joined rooms are always in m.direct
         # joinedRooms = self.getJoinedRooms(login_session)
         # for roomId in joinedRooms:
         #     room_topic = self.getRoomState(
@@ -538,7 +538,9 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         invites = login_session.getSync().get_current_direct_room_ids_invited_to(login_session=login_session)
         # in the form roomId: otherUser
         #get current invites {'!wZCxd8oPmdQZ5dbx:socialchatdev.metcarob.com': '@socialdsocialsaas-socialautoconfigtestuser001:socialchatdev.metcarob.com'}
+        print("TODO DEBUG SEARCHING INVITES", invites)
         for roomId in invites.keys():
+            print("TODO roomId", roomId)
             # found an invite - that means we should use this room
             if invites[roomId] == user_id:
                 self.joinRoom(login_session=login_session, roomId=roomId)
