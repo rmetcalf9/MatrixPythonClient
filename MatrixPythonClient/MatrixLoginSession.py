@@ -1,11 +1,22 @@
 from PythonAPIClientBase import LoginSession
 import json
+from .ClientSync import ClientSync
 
 login_method = "m.login.password"
 
 class MatrixLoginSession(LoginSession):
     logged_in_data = None
     who_am_i_cached_result = None
+    client = None
+    sync = None
+
+    def __init__(self, client):
+        self.client = client
+        self.sync = None
+
+    def getSync(self):
+        if self.sync is None:
+            self.sync = ClientSync(client=self.client)
 
     def get_whoami_cached_result(self):
         return self.who_am_i_cached_result
@@ -32,6 +43,7 @@ class MatrixLoginSession(LoginSession):
 
 class MatrixLoginSessionFromAccessToken(MatrixLoginSession):
     def __init__(self, client, user_id, access_token, device_id):
+        super().__init__(client=client)
         self.logged_in_data = {
             "user_id": user_id,
             "access_token": access_token,
@@ -39,12 +51,11 @@ class MatrixLoginSessionFromAccessToken(MatrixLoginSession):
         }
 
 class MatrixLoginSessionFromUsernameAndPassword(MatrixLoginSession):
-    client = None
     username = None
     password = None
 
     def __init__(self, client, username, password):
-        self.client = client
+        super().__init__(client=client)
         self.username = username
         self.password = password
 

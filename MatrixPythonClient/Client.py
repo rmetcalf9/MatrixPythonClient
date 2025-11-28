@@ -485,6 +485,24 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
         return RoomJoinedMembersResult(resultJson)
 
+    def joinRoom(self, login_session, roomId):
+        postData = {}
+        result = self.sendPostRequest(
+            url="/_matrix/client/v3/rooms/" + roomId + "/join",
+            loginSession=login_session,
+            data=json.dumps(postData)
+        )
+        if result.status_code != 200:
+            if result.status_code == 404:
+                return None
+            print("Error joining room")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error joining room")
+
+        resultJson = json.loads(result.text)
+        return RoomJoinedMembersResult(resultJson)
+
     def findExistingDmRoom(self, login_session, user_id, my_user_id):
         content = self.getAccountData(
             login_session=login_session,
@@ -502,22 +520,30 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
                 return roomId
 
         # # Check joinedRooms in case invite not processed
-        joinedRooms = self.getJoinedRooms(login_session)
-        print("TODO Debugging joinedrooms", joinedRooms)
-        for roomId in joinedRooms:
-            room_topic = self.getRoomState(
-                login_session=login_session,
-                roomId=roomId,
-                state="m.room.topic"
-            )
-            print("TODO Debugging room", roomId, room_topic)
-            if room_topic == "Direct Chat":
-                joinedMembers = self.getRoomMembers(login_session, roomId)
-                print("TODO Debugging joinedmembers", joinedMembers.result)
-                if joinedMembers.numMembers() == 2:
-                    if joinedMembers.isUserActiveOrInvited(user_id):
-                        if joinedMembers.isUserActiveOrInvited(my_user_id):
-                            return roomId
+        # This check is not nessecary as joined rooms are always in m.direct
+        # joinedRooms = self.getJoinedRooms(login_session)
+        # for roomId in joinedRooms:
+        #     room_topic = self.getRoomState(
+        #         login_session=login_session,
+        #         roomId=roomId,
+        #         state="m.room.topic"
+        #     )
+        #     if room_topic == "Direct Chat":
+        #         joinedMembers = self.getRoomMembers(login_session, roomId)
+        #         if joinedMembers.numMembers() == 2:
+        #             if joinedMembers.isUserActiveOrInvited(user_id):
+        #                 if joinedMembers.isUserActiveOrInvited(my_user_id):
+        #                     return roomId
+
+        invites = login_session.getSync().get_current_direct_room_ids_invited_to(login_session=login_session)
+        # in the form roomId: otherUser
+        #get current invites {'!wZCxd8oPmdQZ5dbx:socialchatdev.metcarob.com': '@socialdsocialsaas-socialautoconfigtestuser001:socialchatdev.metcarob.com'}
+        for roomId in invites.keys():
+            # found an invite - that means we should use this room
+            if invites[roomId] == user_id:
+                self.joinRoom(login_session=login_session, roomId=roomId)
+                self.updateDirectMapping(login_session=login_session, userId=user_id, roomId=roomId)
+                return roomId
 
         return None
 
