@@ -459,7 +459,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             return None
         if user_id not in content:
             return None
-        roomIds = content["userId"]
+        roomIds = content[user_id]
         for roomId in roomIds:
             # Will return the first room where the other user is invited or in the room (not leave)
             joinedMembers = self.getRoomJoinedMembers(login_session, roomId)
