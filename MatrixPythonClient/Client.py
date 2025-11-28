@@ -501,7 +501,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             raise Exception("Error joining room")
 
         resultJson = json.loads(result.text)
-        return RoomJoinedMembersResult(resultJson)
+        return resultJson
 
     def findExistingDmRoom(self, login_session, user_id, my_user_id):
         content = self.getAccountData(
