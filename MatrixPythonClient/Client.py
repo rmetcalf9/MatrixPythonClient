@@ -463,9 +463,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         for roomId in roomIds:
             # Will return the first room where the other user is invited or in the room (not leave)
             joinedMembers = self.getRoomJoinedMembers(login_session, roomId)
-            print("TMP DEBUG TODO REM", joinedMembers.result, user_id)
             membershipForUser = joinedMembers.getMembershipForUser(user_id)
-            print("TMP DEBUG", membershipForUser)
             if membershipForUser is not None:
                 membership = membershipForUser["content"]["membership"]
                 if membership == "join":
