@@ -435,7 +435,23 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             print("response", result.text)
             raise Exception("Error getting account data")
 
-    def getRoomJoinedMembers(self, login_session, roomId):
+    def getJoinedRooms(self, login_session):
+        result = self.sendGetRequest(
+            url="/_matrix/client/v3/joined_rooms",
+            loginSession=login_session
+        )
+        if result.status_code != 200:
+            if result.status_code == 404:
+                return None
+            print("Error getting room member list")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error getting room member list")
+
+        resultJson = json.loads(result.text)
+        return resultJson["joined_rooms"]
+
+    def getRoomMembers(self, login_session, roomId):
         result = self.sendGetRequest(
             url="/_matrix/client/v3/rooms/" + roomId + "/members",
             loginSession=login_session
@@ -463,7 +479,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         roomIds = content[user_id]
         for roomId in roomIds:
             # Will return the first room where the other user is invited or in the room (not leave)
-            joinedMembers = self.getRoomJoinedMembers(login_session, roomId)
+            joinedMembers = self.getRoomMembers(login_session, roomId)
             membershipForUser = joinedMembers.getMembershipForUser(user_id)
             if membershipForUser is not None:
                 membership = membershipForUser["content"]["membership"]
@@ -471,6 +487,13 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
                     return roomId
                 if membership == "invite":
                     return roomId
+
+        # # Check joinedRooms in case invite not processed
+        # joinedRooms = self.getJoinedRooms(login_session)
+        # for roomId in joinedRooms:
+
+
+
         return None
 
     def updateDirectMapping(self, login_session, userId, roomId):
