@@ -451,6 +451,24 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
         return resultJson["joined_rooms"]
 
+    def getRoomState(self, login_session, roomId, state):
+        result = self.sendGetRequest(
+            url="/_matrix/client/v3/rooms/" + roomId + "/state/" + state,
+            loginSession=login_session
+        )
+        if result.status_code != 200:
+            if result.status_code == 404:
+                return None
+            print("Error getting room topic")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error getting room topic")
+
+        resultJson = json.loads(result.text)
+        if "topic" not in resultJson:
+            return ""
+        return resultJson["topic"]
+
     def getRoomMembers(self, login_session, roomId):
         result = self.sendGetRequest(
             url="/_matrix/client/v3/rooms/" + roomId + "/members",
