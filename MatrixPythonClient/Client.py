@@ -8,6 +8,7 @@ import hashlib
 import PythonAPIClientBase
 from .Exceptions import UserAlreadyJoinedRoomException
 from .RoomJoinedMembersResult import RoomJoinedMembersResult
+from .RoomPowerLevels import get_trusted_private_chat_power_levels
 
 usernameInvalidChars=" :@!"
 
@@ -102,7 +103,9 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         room_topic,
         room_name,
         room_alias_name,
-        invite_list
+        invite_list,
+        is_direct = False,
+        power_levels = None
     ):
         # POST
         create_room_body = {
@@ -132,13 +135,19 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             ],
             "invite": invite_list,
             "invite_3pid": [],
-            "is_direct": False,
+            "is_direct": is_direct,
             "name": room_name,
             "room_alias_name": room_alias_name,
             "room_version": "11",
             "topic": room_topic,
             "visibility": "private"
         }
+        if power_levels is not None:
+            create_room_body["initial_state"].append({
+                "type": "m.room.power_levels",
+                "state_key": "",
+                "content": power_levels
+            })
         response = self.sendPostRequest(
             "/_matrix/client/v3/createRoom",
             loginSession=login_session,
@@ -419,6 +428,11 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             loginSession=login_session,
             data=json.dumps(data)
         )
+        if result.status_code != 200:
+            print("Error getting account data")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error getting account data")
 
     def getRoomJoinedMembers(self, login_session, roomId):
         result = self.sendGetRequest(
@@ -447,40 +461,53 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             return None
         roomIds = content["userId"]
         for roomId in roomIds:
-            pass
+            # Will return the first room where the other user is invited or in the room (not leave)
+            joinedMembers = self.getRoomJoinedMembers(login_session, roomId)
+            membership = joinedMembers.getMembershipForUser(user_id)["content"]["membership"]
+            if membership == "join":
+                return roomId
+            if membership == "invite":
+                return roomId
+        return None
 
-    #   const content = this.get_accountDataMDirect()
-    #
-    #   const roomIds = content[userId]
-    #   if (!roomIds) return null
-    #
-    #   // Validate the rooms (sometimes rooms get stale)
-    #   for (const roomId of roomIds) {
-    #     const room = this.matrix.getRoom(roomId)
-    #     if (!room) continue
-    #
-    #     const membership = room.getMyMembership()
-    #     if (membership === 'join' || membership === 'invite') {
-    #       return roomId
-    #     }
-    #   }
-    # },
+    def updateDirectMapping(self, login_session, userId, roomId):
+        data_type="m.direct"
+        content = self.getAccountData(
+            login_session=login_session,
+            data_type=data_type
+        )
+        if content is None:
+            content = {}
+        if userId not in content:
+            content[userId] = []
+        if roomId not in content[userId]:
+            content[userId].append(roomId)
+        self.setAccountData(
+            login_session=login_session,
+            data_type=data_type,
+            data=content
+        )
 
-    def start_direct_message(self, user_id):
+    def start_direct_message(self, login_session, user_id):
         self.ensureValidUserId(user_id)
-        existingRoomId = self.findExistingDmRoom(user_id)
+        existingRoomId = self.findExistingDmRoom(login_session=login_session, user_id=user_id)
         if existingRoomId is not None:
             return existingRoomId
 
-      # const response = await this.matrix.createRoom({
-      #   invite: [userId],
-      #   is_direct: true,
-      #   preset: 'trusted_private_chat',
-      #   // No encryption state!
-      #   room_name: userId + ' - ' + this.matrix.getUserId(),
-      #   room_topic: 'Direct Chat'
-      #
-      # })
-      # const roomId = response.room_id
-      # this.updateDirectMapping(userId, roomId)
-      # return roomId
+        my_user_id = self.whoami(login_session)["user_id"]
+
+        roomId = self.create_room(
+            login_session=login_session,
+            room_topic="Direct Chat",
+            room_name=user_id + ' - ' + my_user_id,
+            room_alias_name=None,
+            invite_list=[user_id],
+            is_direct=True,
+            power_levels=get_trusted_private_chat_power_levels([my_user_id, user_id])
+        )
+        self.updateDirectMapping(
+          login_session=login_session,
+          userId=user_id,
+          roomId=roomId
+        )
+        return roomId
