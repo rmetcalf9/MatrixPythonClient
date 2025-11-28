@@ -137,11 +137,12 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             "invite_3pid": [],
             "is_direct": is_direct,
             "name": room_name,
-            "room_alias_name": room_alias_name,
             "room_version": "11",
             "topic": room_topic,
             "visibility": "private"
         }
+        if room_alias_name is not None:
+            create_room_body["room_alias_name"] = room_alias_name
         if power_levels is not None:
             create_room_body["initial_state"].append({
                 "type": "m.room.power_levels",
