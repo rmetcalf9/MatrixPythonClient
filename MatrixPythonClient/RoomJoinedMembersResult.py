@@ -7,6 +7,6 @@ class RoomJoinedMembersResult():
 
     def getMembershipForUser(self, user_id):
         for chunk in self.result["chunk"]:
-            if chunk["sender"] == user_id:
+            if chunk["state_key"] == user_id:
                 return chunk
         return None

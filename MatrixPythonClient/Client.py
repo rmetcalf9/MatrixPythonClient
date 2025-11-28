@@ -465,6 +465,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             joinedMembers = self.getRoomJoinedMembers(login_session, roomId)
             print("TMP DEBUG TODO REM", joinedMembers.result, user_id)
             membershipForUser = joinedMembers.getMembershipForUser(user_id)
+            print("TMP DEBUG", membershipForUser)
             if membershipForUser is not None:
                 membership = membershipForUser["content"]["membership"]
                 if membership == "join":
