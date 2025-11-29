@@ -501,6 +501,26 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
         return resultJson
 
+    def leaveRoom(self, login_session, roomId, reason=None):
+        postData = {}
+        if reason is not None:
+            postData["reason"] = reason
+        result = self.sendPostRequest(
+            url="/_matrix/client/v3/rooms/" + roomId + "/leave",
+            loginSession=login_session,
+            data=json.dumps(postData)
+        )
+        if result.status_code != 200:
+            if result.status_code == 404:
+                return None
+            print("Error leaving room")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error leaving room")
+
+        resultJson = json.loads(result.text)
+        return resultJson
+
     def findExistingDmRoom(self, login_session, user_id, my_user_id):
         content = self.getAccountData(
             login_session=login_session,
