@@ -593,11 +593,18 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         )
         if content is None:
             return # No content so
-        for userId in content:
+        userIDsToCheck = list(content.keys())
+
+        # First: remove the roomId from all lists
+        for userId in userIDsToCheck:
             if roomId in content[userId]:
-                del content[userId]
+                content[userId].remove(roomId)
+
+        # Second: remove any users whose list is now empty
+        for userId in userIDsToCheck:
             if len(content[userId]) == 0:
                 del content[userId]
+
         self.setAccountData(
             login_session=login_session,
             data_type=data_type,
