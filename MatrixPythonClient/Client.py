@@ -465,9 +465,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             raise Exception("Error getting room topic")
 
         resultJson = json.loads(result.text)
-        if "topic" not in resultJson:
-            return ""
-        return resultJson["topic"]
+        return resultJson
 
     def getRoomMembers(self, login_session, roomId):
         result = self.sendGetRequest(
