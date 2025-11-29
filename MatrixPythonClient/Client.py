@@ -521,7 +521,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
 
         # Need to remove from m.direct if it is there
-        updateDirectMappingRemoveRoomId(login_session=login_session, roomId=roomId)
+        self.updateDirectMappingRemoveRoomId(login_session=login_session, roomId=roomId)
 
         return resultJson
 
