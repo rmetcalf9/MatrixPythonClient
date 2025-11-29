@@ -596,6 +596,8 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         for userId in content:
             if roomId in content[userId]:
                 del content[userId]
+            if len(content[userId]) == 0:
+                del content[userId]
         self.setAccountData(
             login_session=login_session,
             data_type=data_type,
