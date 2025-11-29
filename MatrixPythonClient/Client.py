@@ -519,6 +519,10 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             raise Exception("Error leaving room")
 
         resultJson = json.loads(result.text)
+
+        # Need to remove from m.direct if it is there
+        updateDirectMappingRemoveRoomId(login_session=login_session, roomId=roomId)
+
         return resultJson
 
     def findExistingDmRoom(self, login_session, user_id, my_user_id):
@@ -558,12 +562,12 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             # found an invite - that means we should use this room
             if invites[roomId] == user_id:
                 self.joinRoom(login_session=login_session, roomId=roomId)
-                self.updateDirectMapping(login_session=login_session, userId=user_id, roomId=roomId)
+                self.updateDirectMappingAddRoomId(login_session=login_session, userId=user_id, roomId=roomId)
                 return roomId
 
         return None
 
-    def updateDirectMapping(self, login_session, userId, roomId):
+    def updateDirectMappingAddRoomId(self, login_session, userId, roomId):
         data_type="m.direct"
         content = self.getAccountData(
             login_session=login_session,
@@ -575,6 +579,23 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             content[userId] = []
         if roomId not in content[userId]:
             content[userId].append(roomId)
+        self.setAccountData(
+            login_session=login_session,
+            data_type=data_type,
+            data=content
+        )
+
+    def updateDirectMappingRemoveRoomId(self, login_session, roomId):
+        data_type="m.direct"
+        content = self.getAccountData(
+            login_session=login_session,
+            data_type=data_type
+        )
+        if content is None:
+            return # No content so
+        for userId in content:
+            if roomId in content[userId]:
+                del content[userId]
         self.setAccountData(
             login_session=login_session,
             data_type=data_type,
@@ -598,7 +619,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             is_direct=True,
             power_levels=get_trusted_private_chat_power_levels([my_user_id, user_id])
         )
-        self.updateDirectMapping(
+        self.updateDirectMappingAddRoomId(
           login_session=login_session,
           userId=user_id,
           roomId=roomId
