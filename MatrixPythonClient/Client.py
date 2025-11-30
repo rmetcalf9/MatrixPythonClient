@@ -634,3 +634,23 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
           roomId=roomId
         )
         return roomId
+
+    def sendTextMessageToRoom(self, login_session, roomId, messageText):
+        txn_id = str(uuid.uuid4())
+        event_type = "m.room.message"
+        data = {
+            "msgtype": "m.text",
+            "body": messageText
+        }
+        result = self.sendPutRequest(
+            url="/_matrix/client/v3/rooms/" + roomId + "/send/" + event_type + "/" + txn_id,
+            loginSession=login_session,
+            data=json.dumps(data)
+        )
+        if result.status_code != 200:
+            print("Error getting account data")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error getting account data")
+
+        return json.loads(result.text)
