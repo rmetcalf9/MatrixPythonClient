@@ -501,6 +501,29 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
         return resultJson
 
+    #POST / _matrix / client / v3 / rooms / {roomId} / kick
+    def kickUserFromRoom(
+        self,
+        login_session,
+        room_id,
+        user_id,
+        reason
+    ):
+        postData = {
+            "reason": reason,
+            "user_id": user_id
+        }
+        response = self.sendPostRequest(
+            "/_matrix/client/v3/rooms/" + room_id + "/kick",
+            loginSession=login_session,
+            data=json.dumps(postData)
+        )
+        if response.status_code != 200:
+            print("status", response.status_code)
+            print("text", response.text)
+            raise Exception("Error failed to kick user from room")
+        return
+
     def leaveRoom(self, login_session, roomId, reason=None):
         postData = {}
         if reason is not None:
