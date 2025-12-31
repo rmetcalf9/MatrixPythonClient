@@ -182,7 +182,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             if response.status_code == 403:
                 try:
                     #print("Checking 403")
-                    responseJson = json.dumps(response.text)
+                    responseJson = json.loads(response.text)
                     #print("responseJson", responseJson)
                     if responseJson["errcode"] == "M_FORBIDDEN":
                         if responseJson["error"] == "user is already joined to room":
