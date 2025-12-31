@@ -469,6 +469,29 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         resultJson = json.loads(result.text)
         return resultJson
 
+    def setRoomState(self, login_session, roomId, state, data):
+        result = self.sendPutRequest(
+            url="/_matrix/client/v3/rooms/" + roomId + "/state/" + state,
+            loginSession=login_session,
+            data=json.dumps(data)
+        )
+        if result.status_code != 200:
+            print("Error setting room state")
+            print(" (" + state + ")")
+            print("status", result.status_code)
+            print("response", result.text)
+            raise Exception("Error getting account data")
+
+        return json.loads(result.text)
+
+    def setRoomName(self, login_session, roomId, name):
+        return self.setRoomState(
+            login_session=login_session,
+            roomId=roomId,
+            state="m.room.name",
+            data={"name": name}
+        )
+
     def getRoomMembers(self, login_session, roomId):
         result = self.sendGetRequest(
             url="/_matrix/client/v3/rooms/" + roomId + "/members",
