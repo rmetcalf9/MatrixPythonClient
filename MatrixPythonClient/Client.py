@@ -179,22 +179,17 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             data=json.dumps(invite_body)
         )
         if response.status_code != 200:
-            print("invite_user_to_room ERROR A")
             if response.status_code == 403:
-                print("invite_user_to_room ERROR B")
                 try:
                     #print("Checking 403")
-                    print("invite_user_to_room ERROR C")
                     responseJson = json.loads(response.text)
                     #print("responseJson", responseJson)
-                    print("invite_user_to_room ERROR D")
                     if responseJson["errcode"] == "M_FORBIDDEN":
-                        print("invite_user_to_room ERROR E")
                         if responseJson["error"] == "user is already joined to room":
-                            print("invite_user_to_room ERROR F")
                             raise UserAlreadyJoinedRoomException("user is already joined to room")
+                except UserAlreadyJoinedRoomException as e:
+                    raise e
                 except:
-                    print("invite_user_to_room ERROR G")
                     pass
             print("ERROR")
             print("status", response.status_code)
