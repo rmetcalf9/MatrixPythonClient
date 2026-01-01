@@ -6,7 +6,7 @@ import uuid
 import hmac
 import hashlib
 import PythonAPIClientBase
-from .Exceptions import UserAlreadyJoinedRoomException
+from .Exceptions import UserAlreadyJoinedRoomException, FailedToKickRoomMemberException
 from .RoomJoinedMembersResult import RoomJoinedMembersResult
 from .RoomPowerLevels import get_trusted_private_chat_power_levels
 
@@ -546,7 +546,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         if response.status_code != 200:
             print("status", response.status_code)
             print("text", response.text)
-            raise Exception("Error failed to kick user from room")
+            raise FailedToKickRoomMemberException("Error failed to kick user from room")
         return
 
     def leaveRoom(self, login_session, roomId, reason=None):
