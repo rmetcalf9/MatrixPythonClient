@@ -87,7 +87,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         }
 
         response = self.sendPostRequest(
-            f"/_synapse/admin/v1/reset_password/{user_id}",
+            f"/_dendrite/admin/resetPassword/{user_id}",
             loginSession=login_session,
             data=json.dumps(postData)
         )
