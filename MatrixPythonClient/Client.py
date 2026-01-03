@@ -78,12 +78,33 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             resp["device_id"]
         )
 
+    def resetUserPassword(self, login_session, username, new_password):
+        user_id = self.get_userid_from_username(username)
+        # user_id is a matrix username such as @alice:example.com
+        postData = {
+            "new_password": new_password,
+            "logout_devices": True
+        }
+
+        response = self.sendPostRequest(
+            f"/_synapse/admin/v1/reset_password/{user_id}",
+            loginSession=login_session,
+            data=json.dumps(postData)
+        )
+        if response.status_code != 200:
+            print("ERROR")
+            print("status", response.status_code)
+            print("text", response.text)
+            raise Exception("Error failed to reset password")
+        return json.loads(response.text)
+
     def getAllUsers(self, login_session):
         postData={
             "limit": 1
         }
         response = self.sendPostRequest(
-            "/_matrix/client/v3/user_directory/search", loginSession=login_session,
+            "/_matrix/client/v3/user_directory/search",
+            loginSession=login_session,
             data=json.dumps(postData)
         )
 
