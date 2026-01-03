@@ -82,7 +82,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
         user_id = self.get_userid_from_username(username)
         # user_id is a matrix username such as @alice:example.com
         postData = {
-            "new_password": new_password,
+            "password": new_password,
             "logout_devices": True
         }
 
