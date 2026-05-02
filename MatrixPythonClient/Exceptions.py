@@ -5,3 +5,6 @@ class UserAlreadyJoinedRoomException(Exception):
 
 class FailedToKickRoomMemberException(Exception):
     pass
+
+class AutoRegisterUserCreatedNoPasswordStored(Exception):
+    pass

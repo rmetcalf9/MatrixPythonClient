@@ -6,7 +6,7 @@ import uuid
 import hmac
 import hashlib
 import PythonAPIClientBase
-from .Exceptions import UserAlreadyJoinedRoomException, FailedToKickRoomMemberException
+from .Exceptions import UserAlreadyJoinedRoomException, FailedToKickRoomMemberException, AutoRegisterUserCreatedNoPasswordStored
 from .RoomJoinedMembersResult import RoomJoinedMembersResult
 from .RoomPowerLevels import get_trusted_private_chat_power_levels
 
@@ -303,7 +303,7 @@ class MatrixClient(PythonAPIClientBase.APIClientBase):
             login_session = self.getLoginSessionFromAccessToken(user_id=user_id, access_token=access_token, device_id=device_id)
         else:
             if password == None:
-                raise Exception("Error - user already created but we have no password stored")
+                raise AutoRegisterUserCreatedNoPasswordStored("Error - user already created but we have no password stored")
             login_session = self.getLoginSessionFromUsernameAndPassword(username=username, password=password)
 
         # Creation doesn't seem to update display name so do it here
